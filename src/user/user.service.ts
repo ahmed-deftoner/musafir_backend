@@ -21,7 +21,7 @@ import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
 import { ForgotPassword } from './interfaces/forgot-password.interface';
 import { User } from './interfaces/user.interface';
 import { ObjectId } from 'bson';
-import { generateRandomPassword, generateUniqueCode } from 'src/util';
+import { generateRandomPassword, generateUniqueCode } from '../util';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { StorageService } from '../storage/storageService';
 

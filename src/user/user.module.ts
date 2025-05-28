@@ -6,7 +6,7 @@ import { UserService } from './user.service';
 import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
 import { ForgotPasswordSchema } from './schemas/forgot-password.schema';
-import { StorageService } from 'src/storage/storageService';
+import { StorageService } from '../storage/storageService';
 import { ConfigService } from '@nestjs/config';
 
 @Module({

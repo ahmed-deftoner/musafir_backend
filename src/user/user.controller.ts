@@ -33,7 +33,7 @@ import { JwtAuthGuard } from '../auth/guards/auth.guard';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { AuthenticatedRequest } from './interfaces/authenticated-request';
 import { errorResponse, successResponse } from '../constants/response';
-import { GetUser } from 'src/auth/decorators/user.decorator';
+import { GetUser } from '../auth/decorators/user.decorator';
 import { User } from './interfaces/user.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 
