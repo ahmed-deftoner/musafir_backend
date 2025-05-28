@@ -1,20 +1,25 @@
+# Build stage
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies and build app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Production stage
 FROM node:22-alpine
 
-# Create and set the working directory
-RUN mkdir -p /var/www/backend
-WORKDIR /var/www/backend
+WORKDIR /app
 
-# Copy all files to the working directory
-ADD . /var/www/backend
+# Only copy production files
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 
-# # Set network timeout for npm
-# RUN npm config set timeout 600000
+RUN npm install --omit=dev
 
-# Install dependencies
-RUN npm install --f
-
-# Expose the application port
 EXPOSE 5001
 
-# Start the application in development mode
-CMD [ "npm", "run", "start:dev" ]
+CMD ["node", "dist/main.js"]
