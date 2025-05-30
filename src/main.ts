@@ -41,7 +41,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL,
+    origin: ['https://main.d1gcdykopg01ak.amplifyapp.com'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
