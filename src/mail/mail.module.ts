@@ -22,14 +22,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           from: config.get('SES_FROM_TO'),
         },
         template: {
-          dir: join(process.cwd(), 'dist', 'src', 'mail', 'templates'),
+          dir: join(__dirname, 'templates'),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
           },
         },
       }),
-      
+
       inject: [ConfigService],
     }),
   ],
