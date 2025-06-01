@@ -44,15 +44,14 @@ export class UserService {
   async create(
     createUserDto: any,
   ): Promise<{ userId: any; verificationId: string }> {
-    createUserDto.password = "password";
-    // createUserDto.password = generateRandomPassword();
+    createUserDto.password = generateRandomPassword();
     const user = new this.userModel(createUserDto);
     await this.isEmailUnique(user.email);
     user.referralID = generateUniqueCode();
     user.verification.verificationID = v4();
     user.verification.status = 'unverified';
     const password = createUserDto.password;
-    // await this.mailService.sendEmailVerification(user.email, password);
+    await this.mailService.sendEmailVerification(user.email, password);
     const savedUser = await user.save();
     return {
       userId: savedUser._id,
