@@ -21,7 +21,7 @@ import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
 import { ForgotPassword } from './interfaces/forgot-password.interface';
 import { User } from './interfaces/user.interface';
 import { ObjectId } from 'bson';
-import { generateRandomPassword, generateUniqueCode } from '../util';
+import { generateRandomPassword, generateUniqueCode } from 'src/util';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { StorageService } from '../storage/storageService';
 
@@ -50,7 +50,7 @@ export class UserService {
     await this.isEmailUnique(user.email);
     user.referralID = generateUniqueCode();
     user.verification.verificationID = v4();
-    user.verification.status = false;
+    user.verification.status = 'unverified';
     const password = createUserDto.password;
     // await this.mailService.sendEmailVerification(user.email, password);
     const savedUser = await user.save();
@@ -69,7 +69,7 @@ export class UserService {
       user.referralID = generateUniqueCode();
       user.emailVerified = true;
       user.verification.verificationID = v4();
-      user.verification.status = false;
+      user.verification.status = 'unverified';
       await user.save();
     }
     return {
@@ -89,7 +89,7 @@ export class UserService {
       user.referralID = generateUniqueCode();
       user.emailVerified = true;
       user.verification.verificationID = v4();
-      user.verification.status = false;
+      user.verification.status = 'unverified';
       await user.save();
     }
     return {
@@ -175,7 +175,7 @@ export class UserService {
   async findByReferralId(refferal: string): Promise<User> {
     const user = await this.userModel.findOne({
       referralID: refferal,
-      'verification.status': true,
+      'verification.status': 'verified',
     });
     if (!user) {
       throw new BadRequestException('Bad request.');
@@ -203,7 +203,7 @@ export class UserService {
         verifyUser.referral2,
       );
     }
-    user.verification.status = true;
+    user.verification.status = 'verified';
     user.verification.verificationDate = new Date();
     user.markModified('verification');
     return await user.save();
@@ -304,7 +304,7 @@ export class UserService {
   private async findByVerification(verification: string): Promise<User> {
     const user = await this.userModel.findOne({
       'verification.verificationID': verification,
-      'verification.status': false,
+      'verification.status': 'unverified',
     });
     if (!user) {
       throw new BadRequestException('Bad request.');

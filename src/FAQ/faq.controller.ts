@@ -19,14 +19,12 @@ export class FaqController {
   ) { }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/:flagshipId')
-  async getFaqByFlagshipId(
-    @Param('flagshipId') flagshipId: string,
-  ) {
+  @Get('/')
+  async getFaqByFlagshipId() {
     return {
       statusCode: 200,
       message: "FAQ fetched successfully",
-      data: await this.faqService.getFaqByFlagshipId(flagshipId)
+      data: await this.faqService.getFaqByFlagshipId()
     }
   }
 

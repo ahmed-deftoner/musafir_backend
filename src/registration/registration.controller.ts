@@ -4,6 +4,7 @@ import {
     Get,
     HttpCode,
     HttpStatus,
+    Param,
     Post,
     UseGuards,
 } from '@nestjs/common';
@@ -24,8 +25,11 @@ export class RegistrationController {
     ) { }
 
     @Post('/')
+    @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.CREATED)
-    async register(@Body() createRegistrationDto: CreateRegistrationDto) {
+    async register(
+        @Body() createRegistrationDto: CreateRegistrationDto,
+    ) {
         return this.registrationService.createRegistration(createRegistrationDto);
     }
 
@@ -50,6 +54,18 @@ export class RegistrationController {
             statusCode: 200,
             message: "Upcoming passport fetched successfully",
             data: await this.registrationService.getUpcomingPassport(user._id)
+        }
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('/getRegistrationById/:registrationId')
+    async getRegistrationById(
+        @Param('registrationId') registrationId: string,
+    ) {
+        return {
+            statusCode: 200,
+            message: "Registration fetched successfully",
+            data: await this.registrationService.getRegistrationById(registrationId)
         }
     }
 

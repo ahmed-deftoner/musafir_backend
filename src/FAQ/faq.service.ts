@@ -14,12 +14,9 @@ export class FaqService {
     @InjectModel('Faq') private readonly faqModel: Model<Faq>,
   ) { }
 
-  async getFaqByFlagshipId(flagshipId: string): Promise<Faq[]> {
+  async getFaqByFlagshipId(): Promise<Faq[]> {
     try {
-      if (!flagshipId) {
-        throw new BadRequestException('Flagship ID is required');
-      }
-      return this.faqModel.find({ flagshipId });
+      return this.faqModel.find().sort({ createdAt: -1 });
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;

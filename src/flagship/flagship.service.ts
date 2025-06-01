@@ -10,7 +10,7 @@ import { UpdateFlagshipDto } from './dto/update-flagship.dto';
 import { Flagship } from './interfaces/flagship.interface';
 import { User } from 'src/user/interfaces/user.interface';
 import dayjs = require('dayjs');
-import { Registration } from './interfaces/registeration.interface';
+import { Registration } from 'src/registration/interfaces/registration.interface';
 import { Payment } from 'src/payment/interface/payment.interface';
 import { FlagshipFilterDto } from './dto/get-flagship.dto';
 import { RegistrationService } from 'src/registration/registration.service';
@@ -401,7 +401,7 @@ export class FlagshipService {
       (reg) => reg.status === 'pending',
     ).length;
     const acceptedCount = registrations.filter(
-      (reg) => reg.status === 'accepted',
+      (reg) => reg.status === 'confirmed',
     ).length;
     const rejectedCount = registrations.filter(
       (reg) => reg.status === 'rejected',

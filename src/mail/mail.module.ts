@@ -8,8 +8,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      imports:[ConfigModule],
-      useFactory: async (config: ConfigService) => ({        
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => ({
         transport: {
           host: config.get('SES_HOST'),
           secure: true,
@@ -22,17 +22,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           from: config.get('SES_FROM_TO'),
         },
         template: {
-          dir: join(__dirname, 'templates'),
-          adapter: new HandlebarsAdapter(), // or new PugAdapter() or new EjsAdapter()
+          dir: join(process.cwd(), 'dist', 'src', 'mail', 'templates'),
+          adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
           },
         },
       }),
+      
       inject: [ConfigService],
     }),
   ],
   providers: [MailService],
   exports: [MailService],
 })
-export class MailModule {}
+export class MailModule { }

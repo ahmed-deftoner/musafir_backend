@@ -9,6 +9,7 @@ import { Registration } from './interfaces/registration.interface';
 import { User } from 'src/user/interfaces/user.interface';
 import { MailService } from 'src/mail/mail.service';
 import mongoose from 'mongoose';
+import { StorageService } from 'src/storage/storageService';
 
 @Injectable()
 export class RegistrationService {
@@ -16,14 +17,16 @@ export class RegistrationService {
     @InjectModel('Registration') private readonly registrationModel: Model<Registration>,
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('Flagship') private readonly flagshipModel: Model<any>,
+    private readonly storageService: StorageService,
     private readonly mailService: MailService,
   ) { }
 
   async createRegistration(registration: CreateRegistrationDto): Promise<{ registrationId: string, message: string }> {
     try {
-      const user = await this.userModel.findById(registration.userId);
+      const userId = registration.userId;
+      const user = await this.userModel.findById(userId);
       if (!user) {
-        throw new NotFoundException(`User with ID ${registration.userId} not found`);
+        throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
       const flagship = await this.flagshipModel.findById(registration.flagshipId);
@@ -33,7 +36,9 @@ export class RegistrationService {
 
       const newRegistration = new this.registrationModel({
         ...registration,
-        user: new mongoose.Types.ObjectId(registration.userId),
+        amountDue: registration.price,
+        userId: userId,
+        user: user,
         flagship: new mongoose.Types.ObjectId(registration.flagshipId)
       });
 
@@ -50,7 +55,10 @@ export class RegistrationService {
 
   async getPastPassport(userId: string) {
     try {
-      return await this.registrationModel.find({ status: "completed", userId: userId })
+      return await this.registrationModel.find({
+        status: { $in: ["completed", "refunded"] },
+        userId: userId
+      })
         .populate('flagshipId')
         .populate('ratingId')
         .exec();
@@ -61,9 +69,31 @@ export class RegistrationService {
 
   async getUpcomingPassport(userId: string) {
     try {
-      return await this.registrationModel.find({ status: { $ne: "completed" }, userId: userId })
-        .populate('flagshipId')
+      const registrations = await this.registrationModel.find({
+        status: { $nin: ["completed", "refunded"] },
+        userId: userId
+      })
+        .populate('flagship')
         .exec();
+
+      return await Promise.all(
+        registrations.map(async (registration) => {
+          if (registration.flagship.images && registration.flagship.images.length > 0) {
+            const imageUrls = await Promise.all(
+              registration.flagship.images.map(async (imageKey) => {
+                return await this.storageService.getSignedUrl(imageKey);
+              }),
+            );
+            registration.flagship.images = imageUrls;
+          }
+
+          if (registration.flagship.detailedPlan) {
+            registration.flagship.detailedPlan = await this.storageService.getSignedUrl(
+              registration.flagship.detailedPlan,
+            );
+          }
+          return registration;
+        }));
     } catch (error) {
       throw new Error(`Failed to fetch upcoming passport data: ${error.message}`);
     }
@@ -75,18 +105,35 @@ export class RegistrationService {
         throw new Error("Registration ID is required");
       }
 
-      return await this.registrationModel.findById(registrationId)
-        .populate('flagshipId')
+      const registration = await this.registrationModel.findById(registrationId)
+        .populate('flagship')
         .exec();
+
+      if (registration.flagship.images.length > 0) {
+        registration.flagship.images = await Promise.all(
+          registration.flagship.images.map(async (imageKey) => {
+            return await this.storageService.getSignedUrl(imageKey);
+          })
+        )
+      }
+
+      return registration;
     } catch (error) {
       throw new Error(`Failed to fetch registration data: ${error.message}`);
     }
   }
 
+
+
   async sendReEvaluateRequestToJury(registrationId: string, user: User) {
-    const registration = await this.getRegistrationById(registrationId);
-    const tripName = typeof registration.flagshipId === 'object' ? registration.flagshipId.tripName : '';
-    await this.mailService.sendReEvaluateRequestToJury(registrationId, tripName, user.fullName, user.email, user.phone, user?.city);
-    return "Re-evaluate request sent to jury successfully.";
+    try {
+      const registration = await this.getRegistrationById(registrationId);
+      const tripName = typeof registration.flagshipId === 'object' ? registration.flagshipId.tripName : '';
+      await this.mailService.sendReEvaluateRequestToJury(registrationId, tripName, user.fullName, user.email, user.phone, user?.city);
+      return "Re-evaluate request sent to jury successfully.";
+
+    } catch (error) {
+      throw new Error(`Failed to send the re-evalute request to jury: ${error.message}`);
+    }
   }
 } 

@@ -6,6 +6,8 @@ import { RegistrationService } from './registration.service';
 import { MailModule } from '../mail/mail.module';
 import { UserSchema } from '../user/schemas/user.schema';
 import { FlagshipSchema } from '../flagship/schemas/flagship.schema';
+import { ConfigService } from '@nestjs/config';
+import { StorageService } from 'src/storage/storageService';
 
 @Module({
   imports: [
@@ -17,7 +19,7 @@ import { FlagshipSchema } from '../flagship/schemas/flagship.schema';
     MailModule,
   ],
   controllers: [RegistrationController],
-  providers: [RegistrationService],
+  providers: [RegistrationService, StorageService, ConfigService],
   exports: [RegistrationService],
 })
 export class RegistrationModule { }

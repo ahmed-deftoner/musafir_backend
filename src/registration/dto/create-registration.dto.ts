@@ -6,7 +6,7 @@ export class CreateRegistrationDto {
     flagshipId: string;
 
     @IsMongoId()
-    @IsNotEmpty()
+    @IsOptional()
     userId: string;
 
     @IsMongoId()

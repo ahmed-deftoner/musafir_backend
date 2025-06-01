@@ -4,7 +4,7 @@ interface VerificationSubSchema {
   verificationID?: string;
   encodedVideo?: string;
   referralIDs?: [string];
-  status?: boolean;
+  status?: 'unverified' | 'pending' | 'verified' | 'rejected';
   videoLink?: string;
   videoStorageKey?: string;
   verificationDate?: Date;

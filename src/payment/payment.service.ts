@@ -29,7 +29,7 @@ export class PaymentService {
     @InjectModel('Refund')
     private readonly refundModel: Model<Refund>,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async getBankAccounts(): Promise<BankAccount[]> {
     return this.bankAccountModel.find();
@@ -74,6 +74,12 @@ export class PaymentService {
 
   async requestRefund(requestRefundDto: RequestRefundDto): Promise<Refund> {
     const refund = new this.refundModel(requestRefundDto);
+
+    const registration = await this.registrationModel.findById(requestRefundDto.registration);
+    if (registration) {
+      registration.status = "refundProcessing";
+      await registration.save();
+    }
     return refund.save();
   }
 
@@ -95,13 +101,16 @@ export class PaymentService {
 
       // Update registration with payment ID if registration exists
       if (createPaymentDto.registration) {
-        await this.registrationModel.findByIdAndUpdate(
-          createPaymentDto.registration,
-          {
-            paymentId: savedPayment._id,
-            isPaid: true,
-          },
-        );
+        const registration = await this.registrationModel.findById(createPaymentDto.registration);
+        if (registration) {
+          await this.registrationModel.findByIdAndUpdate(
+            createPaymentDto.registration,
+            {
+              paymentId: savedPayment._id,
+              isPaid: true,
+            },
+          );
+        }
       }
     }
 
@@ -116,8 +125,11 @@ export class PaymentService {
     );
 
     if (payment && payment.registration) {
+      const registration = await this.registrationModel.findById(payment.registration);
+
       await this.registrationModel.findByIdAndUpdate(payment.registration, {
         isPaid: true,
+        amountDue: registration.amountDue - payment.amount,
         status: 'confirmed',
       });
     }

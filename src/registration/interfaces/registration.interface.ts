@@ -1,4 +1,5 @@
 import { Flagship } from "src/flagship/interfaces/flagship.interface";
+import { Payment } from "src/payment/interface/payment.interface";
 import { Rating } from "src/Rating/interfaces/rating.interface";
 import { User } from "src/user/interfaces/user.interface";
 
@@ -6,9 +7,10 @@ export class Registration {
   readonly _id: string;
   readonly flagshipId: string | Flagship;
   readonly userId: string;
-  readonly user: string | User;
-  readonly flagship: string | Flagship;
+  readonly user: User;
+  readonly flagship: Flagship;
   readonly paymentId?: string;
+  readonly payment?: Payment;
   readonly isPaid?: boolean;
   readonly joiningFromCity?: string;
   readonly tier?: string;
@@ -22,4 +24,6 @@ export class Registration {
   readonly createdAt?: Date;
   readonly updatedAt?: Date;
   ratingId?: string | Rating;
+  status: 'pending' | 'confirmed' | 'rejected' | 'notReserved' | 'refunded' | 'refundProcessing' | 'completed';
+  comment: string;
 }
