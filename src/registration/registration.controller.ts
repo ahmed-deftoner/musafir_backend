@@ -28,9 +28,10 @@ export class RegistrationController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.CREATED)
     async register(
+        @GetUser() user: User,
         @Body() createRegistrationDto: CreateRegistrationDto,
     ) {
-        return this.registrationService.createRegistration(createRegistrationDto);
+        return this.registrationService.createRegistration(createRegistrationDto, user._id);
     }
 
     @UseGuards(JwtAuthGuard)

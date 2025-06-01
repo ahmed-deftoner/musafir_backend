@@ -21,9 +21,8 @@ export class RegistrationService {
     private readonly mailService: MailService,
   ) { }
 
-  async createRegistration(registration: CreateRegistrationDto): Promise<{ registrationId: string, message: string }> {
+  async createRegistration(registration: CreateRegistrationDto, userId: string): Promise<{ registrationId: string, message: string }> {
     try {
-      const userId = registration.userId;
       const user = await this.userModel.findById(userId);
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
