@@ -40,7 +40,11 @@ export class PaymentService {
       .find()
       .populate({
         path: 'registration',
-        populate: [{ path: 'user' }, { path: 'flagship' }],
+        populate: [
+          { path: 'user' },
+          { path: 'flagship' },
+          { path: 'payment' }
+        ],
       })
       .exec();
   }

@@ -13,6 +13,7 @@ export const RegistrationSchema = new Schema(
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     flagship: { type: Schema.Types.ObjectId, ref: 'Flagship', required: true },
     paymentId: { type: Schema.Types.ObjectId, ref: 'Payment', required: false, default: null },
+    payment: { type: Schema.Types.ObjectId, ref: 'Payment', required: false, default: null },
     isPaid: { type: Boolean, required: false, default: false },
     joiningFromCity: { type: String, required: false },
     tier: { type: String, required: false },

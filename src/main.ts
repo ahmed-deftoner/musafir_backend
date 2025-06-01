@@ -41,7 +41,20 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   app.enableCors({
-    origin: ['https://main.d1gcdykopg01ak.amplifyapp.com'],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'https://main.d1gcdykopg01ak.amplifyapp.com',
+        'http://localhost:3000',
+      ];
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(
+          new Error('The CORS policy for this site does not allow access from the specified Origin.'),
+          false
+    );
+      }
+      return callback(null, true);
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
