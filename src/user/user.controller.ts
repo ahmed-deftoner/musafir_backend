@@ -36,6 +36,7 @@ import { errorResponse, successResponse } from '../constants/response';
 import { GetUser } from 'src/auth/decorators/user.decorator';
 import { User } from './interfaces/user.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @ApiTags('User')
 @Controller('user')

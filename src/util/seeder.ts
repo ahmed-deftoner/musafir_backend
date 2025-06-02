@@ -57,7 +57,7 @@ export async function seed() {
       socialLink,
       roles: ['musafir'],
       verification: {
-        Status: faker.helpers.arrayElement(['pending', 'verified']),
+        status: faker.helpers.arrayElement(['pending', 'verified']),
         RequestCall: faker.datatype.boolean(),
       },
     });

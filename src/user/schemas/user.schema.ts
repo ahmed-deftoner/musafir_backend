@@ -12,7 +12,7 @@ interface VerificationSchema {
   VerificationID?: string;
   EncodedVideo?: string;
   ReferralIDs?: string[];
-  Status?: string;
+  status?: string;
   VideoLink?: string;
   videoStorageKey?: string;
   VerificationDate?: Date;
@@ -24,7 +24,7 @@ const VerificationSchema = new Schema<VerificationSchema>({
   VerificationID: { type: String, required: false },
   EncodedVideo: { type: String, required: false },
   ReferralIDs: [{ type: String, required: false }],
-  Status: {
+  status: {
     type: String,
     enum: ['unverified', 'pending', 'verified', 'rejected'],
     default: 'unverified',

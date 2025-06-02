@@ -285,7 +285,7 @@ export class FlagshipService {
         model: 'User',
         match: {
           ...searchCriteria,
-          'verification.Status': 'verified',
+          'verification.status': 'verified',
         },
       })
       .exec();
@@ -305,7 +305,7 @@ export class FlagshipService {
       .populate({
         path: 'user',
         model: 'User',
-        match: { 'verification.Status': { $in: verificationStatuses } },
+        match: { 'verification.status': { $in: verificationStatuses } },
       })
       .exec();
 

@@ -232,7 +232,7 @@ export class UserService {
   async unverifiedUsers() {
     const users = await this.userModel
       .find({
-        'verification.Status': 'unverified',
+        'verification.status': 'unverified',
       })
       .select('-password -__v')
       .lean();
@@ -242,7 +242,7 @@ export class UserService {
   async verifiedUsers() {
     const users = await this.userModel
       .find({
-        'verification.Status': 'verified',
+        'verification.status': 'verified',
       })
       .select('-password -__v')
       .lean();
@@ -252,7 +252,7 @@ export class UserService {
   async pendingVerificationUsers() {
     const users = await this.userModel
       .find({
-        'verification.Status': 'pending',
+        'verification.status': 'pending',
       })
       .select('-password -__v')
       .lean();
@@ -448,7 +448,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     await this.userModel.findByIdAndUpdate(userId, {
-      'verification.Status': 'verified',
+      'verification.status': 'verified',
     });
   }
 
@@ -458,7 +458,7 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     await this.userModel.findByIdAndUpdate(userId, {
-      'verification.Status': 'rejected',
+      'verification.status': 'rejected',
     });
   }
 

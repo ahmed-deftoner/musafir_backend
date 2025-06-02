@@ -62,7 +62,7 @@ export class FlagshipFilterDto {
   seats?: number;
 
   @ApiPropertyOptional({
-    description: 'Status',
+    description: 'status',
     enum: ['live', 'completed'],
   })
   @IsOptional()
