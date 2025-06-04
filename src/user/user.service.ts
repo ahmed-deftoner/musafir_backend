@@ -259,6 +259,18 @@ export class UserService {
     return users;
   }
 
+  async checkEmailAvailability(email: string) {
+    if (!email) {
+      throw new BadRequestException('Email is required.');
+    }
+
+    const user = await this.userModel.findOne({ email });
+    if (user) {
+      return false;
+    }
+    return true;
+  }
+
   // ********* Private Methods ******
 
   /**

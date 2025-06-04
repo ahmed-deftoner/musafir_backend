@@ -15,6 +15,7 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { CreateGoogleUserDto } from './dto/create-user.dto';
 import { VerifyUuidDto } from './dto/verify-uuid.dto';
@@ -83,6 +84,13 @@ export class UserController {
   @ApiOkResponse({})
   async login(@Req() req: Request, @Body() loginUserDto: LoginUserDto) {
     return await this.userService.login(req, loginUserDto);
+  }
+
+  @Get('check-email-availability')
+  async checkEmailAvailability(
+    @Query('email') email: string,
+  ) {
+    return await this.userService.checkEmailAvailability(email);
   }
 
   @Post('refresh-access-token')
