@@ -92,7 +92,7 @@ export class FlagshipService {
         if (flagship.images && flagship.images.length > 0) {
           const imageUrls = await Promise.all(
             flagship.images.map(async (imageKey) => {
-              return await this.storageService.getImageData(imageKey);
+              return await this.storageService.getSignedUrl(imageKey);
             }),
           );
           flagshipObj.images = imageUrls;
