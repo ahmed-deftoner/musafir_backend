@@ -62,4 +62,25 @@ export class StorageService {
 
     return getSignedUrl(this.s3, command, { expiresIn });
   }
+
+  async getImageData(key: string): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+
+    const response = await this.s3.send(command);
+    const stream = response.Body as Readable;
+
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    const buffer = Buffer.concat(chunks);
+
+    const base64 = buffer.toString('base64');
+    const contentType = response.ContentType || 'image/jpeg';
+
+    return `data:${contentType};base64,${base64}`;
+  }
 }
