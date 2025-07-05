@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 interface VerificationSubSchema {
   verificationID?: string;
   encodedVideo?: string;
-  referralIDs?: [string];
+  referralIDs?: string[];
   status?: 'unverified' | 'pending' | 'verified' | 'rejected';
   videoLink?: string;
   videoStorageKey?: string;
