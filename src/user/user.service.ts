@@ -38,7 +38,7 @@ export class UserService {
     private readonly authService: AuthService,
     private readonly mailService: MailService,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   // Create User
   async create(
@@ -112,7 +112,11 @@ export class UserService {
   async verifyEmail(req: Request, password: string, verificationId: string) {
     const user = await this.findByVerification(verificationId);
     await this.checkPassword(password, user);
+
+    // Update the user's password to the new password they entered
+    user.password = await bcrypt.hash(password, 10);
     await this.setUserAsVerified(user);
+
     return {
       fullName: user.fullName,
       email: user.email,
@@ -491,6 +495,7 @@ export class UserService {
         video.mimetype,
       );
       user.verification.videoStorageKey = videoKey;
+      user.verification.status = 'pending';
       return await user.save();
     } catch (error) {
       throw new Error('Failed to upload video: ' + error.message);
