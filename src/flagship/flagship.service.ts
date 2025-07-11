@@ -411,16 +411,10 @@ export class FlagshipService {
     ).length;
 
     // Get city seats
-    const citySeats = flagship.citySeats as { city: string; seats: number }[];
-    const lahoreSeats =
-      citySeats?.find((seat) => seat.city.toLowerCase() === 'lahore')?.seats ||
-      0;
-    const islamabadSeats =
-      citySeats?.find((seat) => seat.city.toLowerCase() === 'islamabad')
-        ?.seats || 0;
-    const karachiSeats =
-      citySeats?.find((seat) => seat.city.toLowerCase() === 'karachi')?.seats ||
-      0;
+    const citySeats = flagship.citySeats as Record<string, number>;
+    const lahoreSeats = citySeats?.lahore || 0;
+    const islamabadSeats = citySeats?.islamabad || 0;
+    const karachiSeats = citySeats?.karachi || 0;
 
     // Calculate gender distribution
     const maleCount = registrations.filter(

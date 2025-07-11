@@ -42,7 +42,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -87,9 +87,7 @@ export class UserController {
   }
 
   @Get('check-email-availability')
-  async checkEmailAvailability(
-    @Query('email') email: string,
-  ) {
+  async checkEmailAvailability(@Query('email') email: string) {
     return await this.userService.checkEmailAvailability(email);
   }
 
@@ -165,7 +163,10 @@ export class UserController {
       }
 
       if (video) {
-        const videoUrl = await this.userService.uploadVerificationVideo(video, user._id as string);
+        const videoUrl = await this.userService.uploadVerificationVideo(
+          video,
+          user._id as string,
+        );
         return successResponse(videoUrl, 'Video uploaded successfully', 200);
       }
 
@@ -176,7 +177,6 @@ export class UserController {
         );
         return successResponse(res, 'Verification Requested', 200);
       }
-
       return errorResponse('Unable to Verify User');
     } catch (error) {
       return errorResponse(error);

@@ -201,10 +201,10 @@ export class UserService {
   async setUserVerified(id: string, verifyUser: VerifyUserDto) {
     const user = await this.userModel.findById(id);
     if (verifyUser.referral1 && verifyUser.referral2) {
-      user.verification.referralIDs.push(
+      user.verification.referralIDs = [
         verifyUser.referral1,
         verifyUser.referral2,
-      );
+      ];
     }
     user.verification.status = 'verified';
     user.verification.verificationDate = new Date();
@@ -221,6 +221,7 @@ export class UserService {
       user.verification.videoLink = verifyUser.videoUrl;
     }
     user.verification.VerificationRequestDate = new Date();
+    user.verification.status = 'pending';
     user.markModified('verification');
     return await user.save();
   }
@@ -237,6 +238,7 @@ export class UserService {
     const users = await this.userModel
       .find({
         'verification.status': 'unverified',
+        roles: { $ne: 'admin' },
       })
       .select('-password -__v')
       .lean();
@@ -247,6 +249,7 @@ export class UserService {
     const users = await this.userModel
       .find({
         'verification.status': 'verified',
+        roles: { $ne: 'admin' },
       })
       .select('-password -__v')
       .lean();
@@ -257,6 +260,7 @@ export class UserService {
     const users = await this.userModel
       .find({
         'verification.status': 'pending',
+        roles: { $ne: 'admin' },
       })
       .select('-password -__v')
       .lean();
@@ -341,7 +345,7 @@ export class UserService {
   }
 
   private async findUserByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email, emailVerified: true });
+    const user = await this.userModel.findOne({ email });
     if (!user) {
       throw new NotFoundException('Wrong email or password.');
     }
