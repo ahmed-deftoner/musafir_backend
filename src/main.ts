@@ -18,8 +18,6 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // await seed();
-
   // Use Global Pipes
   app.useGlobalPipes(
     new ValidationPipe({

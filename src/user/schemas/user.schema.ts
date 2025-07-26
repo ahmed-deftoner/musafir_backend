@@ -104,9 +104,7 @@ UserSchema.pre('save', async function (next) {
     if (!this.password || typeof this.password !== 'string') {
       throw new Error('Invalid or missing password');
     }
-    console.log(this['password']);
     const hashed = await bcrypt.hash(this['password'], 10);
-    console.log(hashed);
     this['password'] = hashed;
     return next();
   } catch (err) {

@@ -24,8 +24,21 @@ export class ResetPasswordDto {
   readonly email: string;
 
   @ApiProperty({
+    example: 'oldpassword123',
+    description: 'The previous password of the User',
+    format: 'string',
+    minLength: 5,
+    maxLength: 1024,
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(1024)
+  readonly previousPassword: string;
+
+  @ApiProperty({
     example: 'secret password change me!',
-    description: 'The password of the User',
+    description: 'The new password of the User',
     format: 'string',
     minLength: 5,
     maxLength: 1024,
@@ -35,4 +48,17 @@ export class ResetPasswordDto {
   @MinLength(5)
   @MaxLength(1024)
   readonly password: string;
+
+  @ApiProperty({
+    example: 'secret password change me!',
+    description: 'Confirm the new password of the User',
+    format: 'string',
+    minLength: 5,
+    maxLength: 1024,
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(1024)
+  readonly confirmPassword: string;
 }

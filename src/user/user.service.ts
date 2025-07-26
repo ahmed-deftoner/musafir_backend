@@ -185,10 +185,43 @@ export class UserService {
 
   // Reset Password
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const forgotPassword =
-      await this.findForgotPasswordByEmail(resetPasswordDto);
-    await this.setForgotPasswordFinalUsed(forgotPassword);
-    await this.resetUserPassword(resetPasswordDto);
+    // Find the user
+    const user = await this.userModel.findOne({
+      email: resetPasswordDto.email,
+      emailVerified: true,
+    });
+    if (!user) {
+      throw new BadRequestException('User not found or not verified.');
+    }
+
+    // Check previous password
+    const isPrevPasswordCorrect = await bcrypt.compare(
+      resetPasswordDto.previousPassword,
+      user.password,
+    );
+    if (!isPrevPasswordCorrect) {
+      throw new BadRequestException('Previous password is incorrect.');
+    }
+
+    // Check new password and confirm password match
+    if (resetPasswordDto.password !== resetPasswordDto.confirmPassword) {
+      throw new BadRequestException(
+        'New password and confirm password do not match.',
+      );
+    }
+
+    // Prevent reusing the same password
+    const isSameAsOld = await bcrypt.compare(
+      resetPasswordDto.password,
+      user.password,
+    );
+    if (isSameAsOld) {
+      throw new BadRequestException(
+        'New password must be different from the previous password.',
+      );
+    }
+
+    await this.resetUserPassword(user, resetPasswordDto.password);
     return {
       email: resetPasswordDto.email,
       message: 'password successfully changed.',
@@ -442,12 +475,8 @@ export class UserService {
     await forgotPassword.save();
   }
 
-  private async resetUserPassword(resetPasswordDto: ResetPasswordDto) {
-    const user = await this.userModel.findOne({
-      email: resetPasswordDto.email,
-      emailVerified: true,
-    });
-    user.password = resetPasswordDto.password;
+  private async resetUserPassword(user, newPassword: string) {
+    user.password = newPassword;
     await user.save();
   }
 
