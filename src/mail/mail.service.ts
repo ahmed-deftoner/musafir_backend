@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MailService {
-  constructor(private mailerService: MailerService) { }
+  constructor(private mailerService: MailerService) {}
 
   async sendEmailVerification(emailto: string, password: string) {
     try {
@@ -22,7 +22,14 @@ export class MailService {
     }
   }
 
-  async sendReEvaluateRequestToJury(registrationId: string, flagshipName: string, name: string, email: string, musafirNumber: string, city: string) {
+  async sendReEvaluateRequestToJury(
+    registrationId: string,
+    flagshipName: string,
+    name: string,
+    email: string,
+    musafirNumber: string,
+    city: string,
+  ) {
     try {
       await this.mailerService.sendMail({
         to: process.env.JURY_EMAIL,
@@ -42,7 +49,15 @@ export class MailService {
     }
   }
 
-  async sendTripQuery(flagshipId: string, flagshipName: string, name: string, email: string, musafirNumber: string, city: string, tripQuery: string) {
+  async sendTripQuery(
+    flagshipId: string,
+    flagshipName: string,
+    name: string,
+    email: string,
+    musafirNumber: string,
+    city: string,
+    tripQuery: string,
+  ) {
     try {
       await this.mailerService.sendMail({
         to: process.env.JURY_EMAIL,
@@ -56,6 +71,26 @@ export class MailService {
           musafirNumber: musafirNumber,
           city: city,
           tripQuery: tripQuery,
+        },
+      });
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async sendPasswordResetEmail(
+    email: string,
+    resetLink: string,
+    userName: string,
+  ) {
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Reset Your 3Musafir Password',
+        template: './password-reset',
+        context: {
+          resetLink: resetLink,
+          userName: userName,
         },
       });
     } catch (error) {

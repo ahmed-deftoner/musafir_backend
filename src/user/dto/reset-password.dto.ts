@@ -62,3 +62,31 @@ export class ResetPasswordDto {
   @MaxLength(1024)
   readonly confirmPassword: string;
 }
+
+export class JwtResetPasswordDto {
+  @ApiProperty({
+    example: 'secret password change me!',
+    description: 'The new password of the User',
+    format: 'string',
+    minLength: 5,
+    maxLength: 1024,
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(1024)
+  readonly password: string;
+
+  @ApiProperty({
+    example: 'secret password change me!',
+    description: 'Confirm the new password of the User',
+    format: 'string',
+    minLength: 5,
+    maxLength: 1024,
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(1024)
+  readonly confirmPassword: string;
+}

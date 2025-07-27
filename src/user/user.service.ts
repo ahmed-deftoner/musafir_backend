@@ -1,4 +1,7 @@
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import {
+  ResetPasswordDto,
+  JwtResetPasswordDto,
+} from './dto/reset-password.dto';
 import { Request } from 'express';
 import { AuthService } from './../auth/auth.service';
 import { MailService } from './../mail/mail.service';
@@ -24,17 +27,15 @@ import { ObjectId } from 'bson';
 import { generateRandomPassword, generateUniqueCode } from 'src/util';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { StorageService } from '../storage/storageService';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
-  HOURS_TO_VERIFY = 4;
   HOURS_TO_BLOCK = 6;
   LOGIN_ATTEMPTS_TO_BLOCK = 5;
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
-    @InjectModel('ForgotPassword')
-    private readonly forgotPasswordModel: Model<ForgotPassword>,
     private readonly authService: AuthService,
     private readonly mailService: MailService,
     private readonly storageService: StorageService,
@@ -154,21 +155,32 @@ export class UserService {
     req: Request,
     createForgotPasswordDto: CreateForgotPasswordDto,
   ) {
-    await this.findByEmail(createForgotPasswordDto.email);
-    await this.saveForgotPassword(req, createForgotPasswordDto);
+    const user = await this.findByEmail(createForgotPasswordDto.email);
+
+    // Generate JWT token with 15 minutes expiry
+    const resetToken = jwt.sign(
+      {
+        userId: user._id,
+        email: user.email,
+        type: 'password_reset',
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' },
+    );
+
+    // Create reset link with frontend URL
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // Send email with reset link
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      resetLink,
+      user.fullName || 'User',
+    );
+
     return {
       email: createForgotPasswordDto.email,
-      message: 'verification sent.',
-    };
-  }
-
-  // Forget Password verify
-  async forgotPasswordVerify(req: Request, verifyUuidDto: VerifyUuidDto) {
-    const forgotPassword = await this.findForgotPasswordByUuid(verifyUuidDto);
-    await this.setForgotPasswordFirstUsed(req, forgotPassword);
-    return {
-      email: forgotPassword.email,
-      message: 'now reset your password.',
+      message: 'Password reset link sent to your email.',
     };
   }
 
@@ -226,6 +238,53 @@ export class UserService {
       email: resetPasswordDto.email,
       message: 'password successfully changed.',
     };
+  }
+
+  // JWT-based Reset Password
+  async resetPasswordWithJwt(
+    token: string,
+    jwtResetPasswordDto: JwtResetPasswordDto,
+  ) {
+    try {
+      // Verify JWT token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
+
+      if (decoded.type !== 'password_reset') {
+        throw new BadRequestException('Invalid token type.');
+      }
+
+      // Find user
+      const user = await this.userModel.findById(decoded.userId);
+      if (!user) {
+        throw new BadRequestException('User not found.');
+      }
+
+      // Check if passwords match
+      if (
+        jwtResetPasswordDto.password !== jwtResetPasswordDto.confirmPassword
+      ) {
+        throw new BadRequestException(
+          'New password and confirm password do not match.',
+        );
+      }
+
+      // Update password
+      await this.resetUserPassword(user, jwtResetPasswordDto.password);
+
+      return {
+        email: user.email,
+        message: 'Password successfully changed.',
+      };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new BadRequestException(
+          'Reset link has expired. Please request a new one.',
+        );
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new BadRequestException('Invalid reset link.');
+      }
+      throw error;
+    }
   }
 
   async setUserVerified(id: string, verifyUser: VerifyUserDto) {
@@ -362,7 +421,7 @@ export class UserService {
   }
 
   private async findByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email, emailVerified: true });
+    const user = await this.userModel.findOne({ email });
     if (!user) {
       throw new NotFoundException('Email not found.');
     }
@@ -414,65 +473,6 @@ export class UserService {
   private async passwordsAreMatch(user) {
     user.loginAttempts = 0;
     await user.save();
-  }
-
-  private async saveForgotPassword(
-    req: Request,
-    createForgotPasswordDto: CreateForgotPasswordDto,
-  ) {
-    const forgotPassword = await this.forgotPasswordModel.create({
-      email: createForgotPasswordDto.email,
-      verification: v4(),
-      expires: addHours(new Date(), this.HOURS_TO_VERIFY),
-      ip: this.authService.getIp(req),
-    });
-    await forgotPassword.save();
-  }
-
-  private async findForgotPasswordByUuid(
-    verifyUuidDto: VerifyUuidDto,
-  ): Promise<ForgotPassword> {
-    const forgotPassword = await this.forgotPasswordModel.findOne({
-      verification: verifyUuidDto.verification,
-      firstUsed: false,
-      finalUsed: false,
-      expires: { $gt: new Date() },
-    });
-    if (!forgotPassword) {
-      throw new BadRequestException('Bad request.');
-    }
-    return forgotPassword;
-  }
-
-  private async setForgotPasswordFirstUsed(
-    req: Request,
-    forgotPassword: ForgotPassword,
-  ) {
-    forgotPassword.firstUsed = true;
-    forgotPassword.ipChanged = this.authService.getIp(req);
-    // forgotPassword.browserChanged = this.authService.getBrowserInfo(req);
-    // forgotPassword.countryChanged = this.authService.getCountry(req);
-    await forgotPassword.save();
-  }
-
-  private async findForgotPasswordByEmail(
-    resetPasswordDto: ResetPasswordDto,
-  ): Promise<ForgotPassword> {
-    const forgotPassword = await this.forgotPasswordModel.findOne({
-      email: resetPasswordDto.email,
-      firstUsed: true,
-      finalUsed: false,
-      expires: { $gt: new Date() },
-    });
-    if (!forgotPassword) {
-      throw new BadRequestException('Bad request.');
-    }
-    return forgotPassword;
-  }
-
-  private async setForgotPasswordFinalUsed(forgotPassword: ForgotPassword) {
-    forgotPassword.finalUsed = true;
-    await forgotPassword.save();
   }
 
   private async resetUserPassword(user, newPassword: string) {

@@ -1,4 +1,7 @@
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import {
+  ResetPasswordDto,
+  JwtResetPasswordDto,
+} from './dto/reset-password.dto';
 import { CreateForgotPasswordDto } from './dto/create-forgot-password.dto';
 import { Request } from 'express';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -112,17 +115,6 @@ export class UserController {
     return await this.userService.forgotPassword(req, createForgotPasswordDto);
   }
 
-  @Post('forgot-password-verify')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Verfiy forget password code' })
-  @ApiOkResponse({})
-  async forgotPasswordVerify(
-    @Req() req: Request,
-    @Body() verifyUuidDto: VerifyUuidDto,
-  ) {
-    return await this.userService.forgotPasswordVerify(req, verifyUuidDto);
-  }
-
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password after verify reset password' })
@@ -130,6 +122,20 @@ export class UserController {
   @ApiOkResponse({})
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return await this.userService.resetPassword(resetPasswordDto);
+  }
+
+  @Post('reset-password-jwt')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using JWT token from email link' })
+  @ApiOkResponse({})
+  async resetPasswordWithJwt(
+    @Query('token') token: string,
+    @Body() jwtResetPasswordDto: JwtResetPasswordDto,
+  ) {
+    return await this.userService.resetPasswordWithJwt(
+      token,
+      jwtResetPasswordDto,
+    );
   }
 
   @Post('request-verification')
