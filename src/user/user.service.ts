@@ -28,6 +28,7 @@ import { generateRandomPassword, generateUniqueCode } from 'src/util';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { StorageService } from '../storage/storageService';
 import * as jwt from 'jsonwebtoken';
+import { Registration } from '../registration/interfaces/registration.interface';
 
 @Injectable()
 export class UserService {
@@ -36,10 +37,11 @@ export class UserService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
-    private readonly authService: AuthService,
+    @InjectModel('Registration') private readonly registrationModel: Model<Registration>,
     private readonly mailService: MailService,
+    private readonly authService: AuthService,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   // Create User
   async create(
@@ -133,6 +135,102 @@ export class UserService {
       email: user.email,
       accessToken: await this.authService.createAccessToken(String(user._id)),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
+    };
+  }
+
+  // Find user by email or phone
+  async findUserByEmailOrPhone(emailOrPhone: string) {
+    const user = await this.userModel.findOne({
+      $or: [
+        { email: emailOrPhone.toLowerCase() },
+        { phone: emailOrPhone }
+      ]
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user has password (existing user)
+    if (user.password) {
+      throw new ConflictException('Account already exists. Please login.');
+    }
+
+    // Get user's registrations to find trips
+    const registrations = await this.registrationModel.find({ userId: user._id })
+      .populate('flagshipId', 'tripName')
+      .exec();
+
+    const trips = registrations
+      .map(reg => {
+        const flagship = reg.flagshipId as any;
+        return flagship?.tripName;
+      })
+      .filter(Boolean);
+
+    return {
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        city: user.city || 'Unknown'
+      },
+      trips
+    };
+  }
+
+  // Verify musafir email and generate password
+  async verifyMusafirEmail(email: string, updateExisting?: boolean, userId?: string) {
+    let user;
+
+    if (updateExisting && userId) {
+      // Update existing user's email
+      user = await this.userModel.findById(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if the new email is already taken by another user
+      const existingUserWithEmail = await this.userModel.findOne({
+        email: email.toLowerCase(),
+        _id: { $ne: userId } // Exclude current user
+      });
+
+      if (existingUserWithEmail) {
+        throw new ConflictException('Email is already taken by another user');
+      }
+
+      // Update the user's email
+      user.email = email.toLowerCase();
+    } else {
+      // Find existing user
+      user = await this.userModel.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if user already has password
+      if (user.password) {
+        throw new ConflictException('Account already exists. Please login.');
+      }
+    }
+
+    // Generate new password
+    const newPassword = generateRandomPassword();
+    user.password = newPassword;
+    user.emailVerified = true;
+    user.verification.status = 'verified';
+
+    await user.save();
+
+    // Send email with password
+    await this.mailService.sendEmailVerification(user.email, newPassword);
+
+    return {
+      message: 'Password sent to your email',
+      email: user.email
     };
   }
 

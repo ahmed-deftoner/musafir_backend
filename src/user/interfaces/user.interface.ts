@@ -31,4 +31,6 @@ export interface User extends Document {
   roles: [string];
   emailVerified: boolean;
   verification?: VerificationSubSchema;
+  discountApplicable?: number;
+  numberOfFlagshipsAttended?: number;
 }

@@ -45,8 +45,17 @@ export const UserSchema = new Schema(
     email: {
       type: String,
       lowercase: true,
-      validate: validator.isEmail,
-      required: true,
+      validate: {
+        validator: function (value: string) {
+          // Only validate if email is provided
+          if (!value || value.trim() === '') {
+            return true; // Allow empty/whitespace emails
+          }
+          return validator.isEmail(value);
+        },
+        message: 'Please provide a valid email address'
+      },
+      required: false,
     },
 
     password: { type: String, required: false },
@@ -82,6 +91,10 @@ export const UserSchema = new Schema(
     emailVerified: { type: Boolean, required: false, default: false },
 
     verification: { type: Object, required: false, default: {} },
+
+    discountApplicable: { type: Number, required: false, default: 0 },
+
+    numberOfFlagshipsAttended: { type: Number, required: false, default: 0 },
   },
   {
     toJSON: {

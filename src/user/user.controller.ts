@@ -45,7 +45,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -281,5 +281,21 @@ export class UserController {
   @ApiOkResponse({})
   rejectUser(@Param('id') id: string) {
     return this.userService.rejectUser(id);
+  }
+
+  @Post('find-user')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find user by email or phone' })
+  @ApiOkResponse({})
+  async findUserByEmailOrPhone(@Body() body: { emailOrPhone: string }) {
+    return await this.userService.findUserByEmailOrPhone(body.emailOrPhone);
+  }
+
+  @Post('verify-musafir-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify musafir email and generate password' })
+  @ApiOkResponse({})
+  async verifyMusafirEmail(@Body() body: { email: string; updateExisting?: boolean; userId?: string }) {
+    return await this.userService.verifyMusafirEmail(body.email, body.updateExisting, body.userId);
   }
 }

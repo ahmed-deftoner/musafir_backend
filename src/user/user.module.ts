@@ -1,5 +1,6 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from './schemas/user.schema';
+import { RegistrationSchema } from '../registration/schemas/registration.schema';
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
@@ -10,7 +11,10 @@ import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: 'Registration', schema: RegistrationSchema }
+    ]),
     AuthModule,
     MailModule,
   ],
@@ -18,4 +22,4 @@ import { ConfigService } from '@nestjs/config';
   providers: [UserService, StorageService, ConfigService],
   exports: [UserService],
 })
-export class UserModule {}
+export class UserModule { }
