@@ -38,12 +38,15 @@ async function bootstrap() {
   });
   SwaggerModule.setup('api', app, document);
 
+  const frontendUrl = process.env.FRONTEND_URL;
+
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [
         'https://main.d1gcdykopg01ak.amplifyapp.com',
         'http://localhost:3000',
         'https://test.3musafir.com',
+        frontendUrl,
       ];
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
