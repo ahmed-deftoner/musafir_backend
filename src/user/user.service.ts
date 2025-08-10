@@ -421,37 +421,99 @@ export class UserService {
     return user;
   }
 
-  async unverifiedUsers() {
+  async unverifiedUsers(search?: string) {
+    const query: any = {
+      'verification.status': 'unverified',
+      roles: { $ne: 'admin' },
+    };
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
     const users = await this.userModel
-      .find({
-        'verification.status': 'unverified',
-        roles: { $ne: 'admin' },
-      })
+      .find(query)
       .select('-password -__v')
       .lean();
     return users;
   }
 
-  async verifiedUsers() {
+  async verifiedUsers(search?: string) {
+    const query: any = {
+      'verification.status': 'verified',
+      roles: { $ne: 'admin' },
+    };
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
     const users = await this.userModel
-      .find({
-        'verification.status': 'verified',
-        roles: { $ne: 'admin' },
-      })
+      .find(query)
       .select('-password -__v')
       .lean();
     return users;
   }
 
-  async pendingVerificationUsers() {
+  async pendingVerificationUsers(search?: string) {
+    const query: any = {
+      'verification.status': 'pending',
+      roles: { $ne: 'admin' },
+    };
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
     const users = await this.userModel
-      .find({
-        'verification.status': 'pending',
-        roles: { $ne: 'admin' },
-      })
+      .find(query)
       .select('-password -__v')
       .lean();
     return users;
+  }
+
+  async searchAllUsers(search: string) {
+    if (!search) {
+      return {
+        unverified: [],
+        pendingVerification: [],
+        verified: [],
+      };
+    }
+
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const query = {
+      roles: { $ne: 'admin' },
+      $or: [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ],
+    };
+
+    const allUsers = await this.userModel
+      .find(query)
+      .select('-password -__v')
+      .lean();
+
+    const groupedUsers = {
+      unverified: allUsers.filter(user => user.verification.status === 'unverified'),
+      pendingVerification: allUsers.filter(user => user.verification.status === 'pending'),
+      verified: allUsers.filter(user => user.verification.status === 'verified'),
+    };
+
+    return groupedUsers;
   }
 
   async checkEmailAvailability(email: string) {

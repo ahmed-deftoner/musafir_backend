@@ -1,27 +1,23 @@
 import { IsMongoId, IsNotEmpty, IsOptional, IsString, IsNumber, IsDate } from 'class-validator';
 
 export class CreatePaymentDTO {
-    @IsDate()
-    @IsOptional()
-    paymentDate: string;
+    @IsMongoId()
+    @IsNotEmpty()
+    registration: string;
 
     @IsMongoId()
     @IsNotEmpty()
-    userId: string; 
-    
-    @IsMongoId()
-    @IsNotEmpty()
-    flagshipId: string; 
+    bankAccount: string;
 
-    @IsMongoId()
+    @IsString()
     @IsNotEmpty()
-    registrationId: string; 
-   
+    paymentType: string;
+
     @IsNumber()
-    @IsOptional()
-    discount: string;
+    @IsNotEmpty()
+    amount: number;
 
     @IsNumber()
     @IsOptional()
-    amount: string;
+    discount: number;
 }
