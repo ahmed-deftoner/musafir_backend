@@ -46,7 +46,7 @@ async function bootstrap() {
         'https://main.d1gcdykopg01ak.amplifyapp.com',
         'http://localhost:3000',
         'https://test.3musafir.com',
-        frontendUrl,
+        'https://www.3musafir.com',
       ];
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
