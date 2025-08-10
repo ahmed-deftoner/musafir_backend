@@ -1,0 +1,224 @@
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f7fb; padding:24px 0;">
+  <tr>
+    <td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:600px; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+        <!-- Header -->
+        <tr>
+          <td bgcolor="#0f766e" style="color:#ffffff; padding:22px 24px;">
+            <div style="font-size:16px; letter-spacing:.3px; opacity:.95;">3Musafir • Admin Notification</div>
+            <h2 style="margin:6px 0 0; font-size:26px; line-height:1.3; font-weight:800; color:#ffffff;">New Registration{{#if flagshipName}} • {{flagshipName}}{{/if}}</h2>
+            <div style="font-size:15px; opacity:.95; margin-top:8px;">A musafir just registered. Here are the details.</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:22px;">
+            <!-- Registration summary chips -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:12px;">
+              <tr>
+                <td style="font-size:16px; color:#0f172a; font-weight:800; padding-bottom:12px;">📝 Registration</td>
+              </tr>
+              <tr>
+                <td>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px; font-size:15px; color:#0f172a;">
+                        <span style="color:#475569;">ID:</span>
+                        <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">{{registrationId}}</span>
+                      </td>
+                      {{#if createdAt}}
+                      <td width="8"></td>
+                      <td style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px; font-size:15px; color:#0f172a;">
+                        <span style="color:#475569;">Created:</span>
+                        <span>{{createdAt}}</span>
+                      </td>
+                      {{/if}}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Trip details card -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+              <tr>
+                <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0;">
+                  <table role="presentation" width="100%">
+                    <tr>
+                      <td style="font-weight:700; color:#0f172a;">Trip Details</td>
+                      {{#if category}}
+                      <td align="right">
+                        <span style="background:#ecfeff; color:#0e7490; border:1px solid #a5f3fc; font-size:12px; padding:4px 10px; border-radius:999px;">{{category}}</span>
+                      </td>
+                      {{/if}}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;">
+                  <table role="presentation" width="100%" style="font-size:16px; color:#0f172a;">
+                    <tr>
+                      <td style="padding:6px 0; color:#475569; width:38%">Flagship ID</td>
+                      <td style="padding:6px 0;">{{flagshipId}}</td>
+                    </tr>
+                    {{#if flagshipName}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Trip Name</td>
+                      <td style="padding:6px 0; font-weight:600;">{{flagshipName}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if destination}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Destination</td>
+                      <td style="padding:6px 0;">{{destination}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if startDate}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Start Date</td>
+                      <td style="padding:6px 0;">{{startDate}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if endDate}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">End Date</td>
+                      <td style="padding:6px 0;">{{endDate}}</td>
+                    </tr>
+                    {{/if}}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Musafir details card -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+              <tr>
+                <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0; font-weight:800; color:#0f172a; font-size:16px;">👤 Musafir Details</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;">
+                  <table role="presentation" width="100%" style="font-size:16px; color:#0f172a;">
+                    <tr>
+                      <td style="padding:6px 0; color:#475569; width:38%">Name</td>
+                      <td style="padding:6px 0; font-weight:600;">{{userName}}</td>
+                    </tr>
+                    {{#if userEmail}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Email</td>
+                      <td style="padding:6px 0;">{{userEmail}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if userPhone}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Phone</td>
+                      <td style="padding:6px 0;">{{userPhone}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if userCity}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">City</td>
+                      <td style="padding:6px 0;">{{userCity}}</td>
+                    </tr>
+                    {{/if}}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Registration preferences card -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+              <tr>
+                <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0; font-weight:800; color:#0f172a; font-size:16px;">⚙️ Registration Preferences</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;">
+                  <table role="presentation" width="100%" style="font-size:16px; color:#0f172a;">
+                    {{#if joiningFromCity}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569; width:38%">Joining From City</td>
+                      <td style="padding:6px 0;">{{joiningFromCity}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if tier}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Tier</td>
+                      <td style="padding:6px 0;">{{tier}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if bedPreference}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Bed Preference</td>
+                      <td style="padding:6px 0;">{{bedPreference}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if roomSharing}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Room Sharing</td>
+                      <td style="padding:6px 0;">{{roomSharing}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if expectations}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Expectations</td>
+                      <td style="padding:6px 0;">{{expectations}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if tripType}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569;">Trip Type</td>
+                      <td style="padding:6px 0;">{{tripType}}</td>
+                    </tr>
+                    {{/if}}
+                    {{#if groupMembers}}
+                    <tr>
+                      <td style="padding:6px 0; color:#475569; vertical-align:top;">Group Members</td>
+                      <td style="padding:6px 0;">
+                        <ul style="margin:0; padding-left:18px;">
+                          {{#each groupMembers}}
+                            <li style="margin:2px 0;">{{this}}</li>
+                          {{/each}}
+                        </ul>
+                      </td>
+                    </tr>
+                    {{/if}}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Payment summary chips -->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e2e8f0; border-radius:8px;">
+              <tr>
+                <td style="padding:14px 16px; border-bottom:1px solid #e2e8f0; font-weight:800; color:#0f172a; font-size:16px;">💳 Payment Summary</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      {{#if price}}
+                      <td style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px 14px; border-radius:6px; font-size:16px;">Price: <strong>PKR {{price}}</strong></td>
+                      {{/if}}
+                      {{#if amountDue}}
+                      <td width="8"></td>
+                      <td style="background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px 14px; border-radius:6px; font-size:16px;">Amount Due: <strong>PKR {{amountDue}}</strong></td>
+                      {{/if}}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Footer note -->
+            <div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:16px;">
+              You’re receiving this email because admin notifications are enabled for 3Musafir.
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+

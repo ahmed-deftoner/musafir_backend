@@ -396,7 +396,22 @@ export class UserService {
     user.verification.status = 'verified';
     user.verification.verificationDate = new Date();
     user.markModified('verification');
-    return await user.save();
+    const savedUser = await user.save();
+
+    // Send verification approved email if user has an email
+    if (user.email) {
+      try {
+        await this.mailService.sendVerificationApprovedEmail(
+          user.email,
+          user.fullName || 'Musafir'
+        );
+      } catch (error) {
+        console.log('Failed to send verification approved email:', error);
+        // Don't throw error - email failure shouldn't prevent user verification
+      }
+    }
+
+    return savedUser;
   }
 
   async requestVerification(id: string, verifyUser: VerifyUserDto) {
@@ -673,9 +688,24 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    
+    // Update verification status
     await this.userModel.findByIdAndUpdate(userId, {
       'verification.status': 'verified',
     });
+
+    // Send verification approved email if user has an email
+    if (user.email) {
+      try {
+        await this.mailService.sendVerificationApprovedEmail(
+          user.email,
+          user.fullName || 'Musafir'
+        );
+      } catch (error) {
+        console.log('Failed to send verification approved email:', error);
+        // Don't throw error - email failure shouldn't prevent user approval
+      }
+    }
   }
 
   async rejectUser(userId: string) {
@@ -683,9 +713,24 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    
+    // Update verification status
     await this.userModel.findByIdAndUpdate(userId, {
       'verification.status': 'rejected',
     });
+
+    // Send verification rejected email if user has an email
+    if (user.email) {
+      try {
+        await this.mailService.sendVerificationRejectedEmail(
+          user.email,
+          user.fullName || 'Musafir'
+        );
+      } catch (error) {
+        console.log('Failed to send verification rejected email:', error);
+        // Don't throw error - email failure shouldn't prevent user rejection
+      }
+    }
   }
 
   async uploadVerificationVideo(

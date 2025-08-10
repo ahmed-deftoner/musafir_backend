@@ -42,6 +42,46 @@ export class RegistrationService {
       });
 
       const createdRegistration = await newRegistration.save();
+
+      
+      try {
+        const populatedRegistration = await this.registrationModel
+          .findById(createdRegistration._id)
+          .populate('user')
+          .populate('flagship')
+          .exec();
+
+        const reg: any = populatedRegistration;
+        const regUser = reg?.user;
+        const regFlagship = reg?.flagship;
+
+        await this.mailService.sendAdminRegistrationNotification({
+          registrationId: String(createdRegistration._id),
+          flagshipId: String(registration.flagshipId),
+          flagshipName: regFlagship?.tripName,
+          userName: regUser?.fullName || 'Musafir',
+          userEmail: regUser?.email,
+          userPhone: regUser?.phone,
+          userCity: regUser?.city,
+          joiningFromCity: registration.joiningFromCity,
+          tier: registration.tier,
+          bedPreference: registration.bedPreference,
+          roomSharing: registration.roomSharing,
+          groupMembers: registration.groupMembers,
+          expectations: registration.expectations,
+          tripType: registration.tripType,
+          price: registration.price,
+          amountDue: registration.price,
+          createdAt: createdRegistration.createdAt,
+          startDate: regFlagship?.startDate,
+          endDate: regFlagship?.endDate,
+          destination: regFlagship?.destination,
+          category: regFlagship?.category,
+        });
+      } catch (e) {
+        console.log('Failed to send admin registration notification:', e);
+      }
+
       return {
         registrationId: createdRegistration._id,
         message: "Registration created successfully."

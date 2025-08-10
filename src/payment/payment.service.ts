@@ -12,6 +12,7 @@ import { User } from 'src/user/interfaces/user.interface';
 import { Flagship } from 'src/flagship/interfaces/flagship.interface';
 import { Refund } from './schema/refund.schema';
 import { Registration } from 'src/registration/interfaces/registration.interface';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class PaymentService {
@@ -29,6 +30,7 @@ export class PaymentService {
     @InjectModel('Refund')
     private readonly refundModel: Model<Refund>,
     private readonly storageService: StorageService,
+    private readonly mailService: MailService,
   ) { }
 
   async getBankAccounts(): Promise<BankAccount[]> {
@@ -197,6 +199,37 @@ export class PaymentService {
         amountDue: registration.amountDue - payment.amount,
         status: 'confirmed',
       });
+
+      // Send payment approved email if user has an email
+      try {
+        // Get populated payment data for email
+        const populatedPayment = await this.paymentModel
+          .findById(id)
+          .populate({
+            path: 'registration',
+            populate: [{ path: 'user' }, { path: 'flagship' }],
+          })
+          .exec();
+
+        if (populatedPayment && populatedPayment.registration) {
+          const reg = populatedPayment.registration as any;
+          const user = reg.user;
+          const flagship = reg.flagship;
+
+          if (user && user.email && flagship) {
+            await this.mailService.sendPaymentApprovedEmail(
+              user.email,
+              user.fullName || 'Musafir',
+              payment.amount,
+              flagship.tripName,
+              payment.createdAt
+            );
+          }
+        }
+      } catch (error) {
+        console.log('Failed to send payment approved email:', error);
+        // Don't throw error - email failure shouldn't prevent payment approval
+      }
     }
 
     return payment;
@@ -214,6 +247,37 @@ export class PaymentService {
         isPaid: false,
         paymentId: null,
       });
+
+      // Send payment rejected email if user has an email
+      try {
+        // Get populated payment data for email
+        const populatedPayment = await this.paymentModel
+          .findById(id)
+          .populate({
+            path: 'registration',
+            populate: [{ path: 'user' }, { path: 'flagship' }],
+          })
+          .exec();
+
+        if (populatedPayment && populatedPayment.registration) {
+          const reg = populatedPayment.registration as any;
+          const user = reg.user;
+          const flagship = reg.flagship;
+
+          if (user && user.email && flagship) {
+            await this.mailService.sendPaymentRejectedEmail(
+              user.email,
+              user.fullName || 'Musafir',
+              payment.amount,
+              flagship.tripName
+              // Note: We could add a reason parameter to the rejectPayment method if needed, unclear right now 
+            );
+          }
+        }
+      } catch (error) {
+        console.log('Failed to send payment rejected email:', error);
+        // Don't throw error - email failure shouldn't prevent payment rejection
+      }
     }
 
     return payment;
