@@ -233,8 +233,8 @@ export class UserController {
   @ApiOperation({ summary: 'Get Unverified Users' })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  UnverifiedUsers() {
-    return this.userService.unverifiedUsers();
+  UnverifiedUsers(@Query('search') search?: string) {
+    return this.userService.unverifiedUsers(search);
   }
 
   @Get('verified-users')
@@ -244,8 +244,8 @@ export class UserController {
   @ApiOperation({ summary: 'Get Verified Users' })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  VerifiedUsers() {
-    return this.userService.verifiedUsers();
+  VerifiedUsers(@Query('search') search?: string) {
+    return this.userService.verifiedUsers(search);
   }
 
   @Get('pending-verification-users')
@@ -255,8 +255,16 @@ export class UserController {
   @ApiOperation({ summary: 'Get Pending Verification Users' })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  PendingVerificationUsers() {
-    return this.userService.pendingVerificationUsers();
+  PendingVerificationUsers(@Query('search') search?: string) {
+    return this.userService.pendingVerificationUsers(search);
+  }
+
+  @Get('search-users')
+  @ApiOperation({ summary: 'Search users across all verification statuses' })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({})
+  async searchUsers(@Query('search') search: string) {
+    return this.userService.searchAllUsers(search);
   }
 
   @Get('user-details/:id')

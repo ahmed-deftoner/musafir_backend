@@ -106,6 +106,7 @@ export class RegistrationService {
 
       const registration = await this.registrationModel.findById(registrationId)
         .populate('flagship')
+        .populate('user')
         .exec();
 
       if (registration.flagship.images.length > 0) {

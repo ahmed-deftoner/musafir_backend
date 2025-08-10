@@ -29,7 +29,7 @@ export class PaymentService {
     @InjectModel('Refund')
     private readonly refundModel: Model<Refund>,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async getBankAccounts(): Promise<BankAccount[]> {
     return this.bankAccountModel.find();
@@ -89,11 +89,66 @@ export class PaymentService {
     return refund.save();
   }
 
+  async calculateUserDiscount(userId: string): Promise<number> {
+    try {
+      // Get all completed registrations for the user
+      const completedRegistrations = await this.registrationModel.find({
+        userId: userId,
+        status: { $in: ['completed', 'refunded'] }
+      }).exec();
+
+      // Calculate discount: 500 per completed trip, capped at 3000
+      const discountPerTrip = 500;
+      const maxDiscount = 3000;
+      const calculatedDiscount = completedRegistrations.length * discountPerTrip;
+
+      return Math.min(calculatedDiscount, maxDiscount);
+    } catch (error) {
+      console.error('Error calculating user discount:', error);
+      return 0;
+    }
+  }
+
+  async getUserDiscountByRegistrationId(registrationId: string): Promise<number> {
+    try {
+      // Get the registration to find the user ID
+      const registration = await this.registrationModel.findById(registrationId)
+        .populate('user')
+        .exec();
+
+      if (!registration) {
+        throw new Error('Registration not found');
+      }
+
+      // Calculate discount for the user
+      const userId = (registration.user as any)._id || registration.userId;
+      return await this.calculateUserDiscount(userId);
+    } catch (error) {
+      console.error('Error getting user discount by registration ID:', error);
+      return 0;
+    }
+  }
+
   async createPayment(
     createPaymentDto: CreatePaymentDto,
     screenshot: Express.Multer.File,
   ): Promise<Payment> {
-    const payment = new this.paymentModel(createPaymentDto);
+    // Get registration to find user ID
+    const registration = await this.registrationModel.findById(createPaymentDto.registration);
+    if (!registration) {
+      throw new Error('Registration not found');
+    }
+
+    // Use the discount provided in the DTO (0 if no discount applied)
+    const discount = createPaymentDto.discount || 0;
+
+    // Create payment with discount
+    const paymentData = {
+      ...createPaymentDto,
+      discount: discount
+    };
+
+    const payment = new this.paymentModel(paymentData);
     const savedPayment = await payment.save();
 
     if (savedPayment && savedPayment._id) {
