@@ -28,6 +28,7 @@ import { generateRandomPassword, generateUniqueCode } from 'src/util';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { StorageService } from '../storage/storageService';
 import * as jwt from 'jsonwebtoken';
+import { Registration } from '../registration/interfaces/registration.interface';
 
 @Injectable()
 export class UserService {
@@ -36,10 +37,11 @@ export class UserService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
-    private readonly authService: AuthService,
+    @InjectModel('Registration') private readonly registrationModel: Model<Registration>,
     private readonly mailService: MailService,
+    private readonly authService: AuthService,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   // Create User
   async create(
@@ -133,6 +135,102 @@ export class UserService {
       email: user.email,
       accessToken: await this.authService.createAccessToken(String(user._id)),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
+    };
+  }
+
+  // Find user by email or phone
+  async findUserByEmailOrPhone(emailOrPhone: string) {
+    const user = await this.userModel.findOne({
+      $or: [
+        { email: emailOrPhone.toLowerCase() },
+        { phone: emailOrPhone }
+      ]
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user has password (existing user)
+    if (user.password) {
+      throw new ConflictException('Account already exists. Please login.');
+    }
+
+    // Get user's registrations to find trips
+    const registrations = await this.registrationModel.find({ userId: user._id })
+      .populate('flagshipId', 'tripName')
+      .exec();
+
+    const trips = registrations
+      .map(reg => {
+        const flagship = reg.flagshipId as any;
+        return flagship?.tripName;
+      })
+      .filter(Boolean);
+
+    return {
+      user: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        city: user.city || 'Unknown'
+      },
+      trips
+    };
+  }
+
+  // Verify musafir email and generate password
+  async verifyMusafirEmail(email: string, updateExisting?: boolean, userId?: string) {
+    let user;
+
+    if (updateExisting && userId) {
+      // Update existing user's email
+      user = await this.userModel.findById(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if the new email is already taken by another user
+      const existingUserWithEmail = await this.userModel.findOne({
+        email: email.toLowerCase(),
+        _id: { $ne: userId } // Exclude current user
+      });
+
+      if (existingUserWithEmail) {
+        throw new ConflictException('Email is already taken by another user');
+      }
+
+      // Update the user's email
+      user.email = email.toLowerCase();
+    } else {
+      // Find existing user
+      user = await this.userModel.findOne({ email: email.toLowerCase() });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Check if user already has password
+      if (user.password) {
+        throw new ConflictException('Account already exists. Please login.');
+      }
+    }
+
+    // Generate new password
+    const newPassword = generateRandomPassword();
+    user.password = newPassword;
+    user.emailVerified = true;
+    user.verification.status = 'verified';
+
+    await user.save();
+
+    // Send email with password
+    await this.mailService.sendEmailVerification(user.email, newPassword);
+
+    return {
+      message: 'Password sent to your email',
+      email: user.email
     };
   }
 
@@ -323,37 +421,99 @@ export class UserService {
     return user;
   }
 
-  async unverifiedUsers() {
+  async unverifiedUsers(search?: string) {
+    const query: any = {
+      'verification.status': 'unverified',
+      roles: { $ne: 'admin' },
+    };
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
     const users = await this.userModel
-      .find({
-        'verification.status': 'unverified',
-        roles: { $ne: 'admin' },
-      })
+      .find(query)
       .select('-password -__v')
       .lean();
     return users;
   }
 
-  async verifiedUsers() {
+  async verifiedUsers(search?: string) {
+    const query: any = {
+      'verification.status': 'verified',
+      roles: { $ne: 'admin' },
+    };
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
     const users = await this.userModel
-      .find({
-        'verification.status': 'verified',
-        roles: { $ne: 'admin' },
-      })
+      .find(query)
       .select('-password -__v')
       .lean();
     return users;
   }
 
-  async pendingVerificationUsers() {
+  async pendingVerificationUsers(search?: string) {
+    const query: any = {
+      'verification.status': 'pending',
+      roles: { $ne: 'admin' },
+    };
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ];
+    }
+
     const users = await this.userModel
-      .find({
-        'verification.status': 'pending',
-        roles: { $ne: 'admin' },
-      })
+      .find(query)
       .select('-password -__v')
       .lean();
     return users;
+  }
+
+  async searchAllUsers(search: string) {
+    if (!search) {
+      return {
+        unverified: [],
+        pendingVerification: [],
+        verified: [],
+      };
+    }
+
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const query = {
+      roles: { $ne: 'admin' },
+      $or: [
+        { fullName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+      ],
+    };
+
+    const allUsers = await this.userModel
+      .find(query)
+      .select('-password -__v')
+      .lean();
+
+    const groupedUsers = {
+      unverified: allUsers.filter(user => user.verification.status === 'unverified'),
+      pendingVerification: allUsers.filter(user => user.verification.status === 'pending'),
+      verified: allUsers.filter(user => user.verification.status === 'verified'),
+    };
+
+    return groupedUsers;
   }
 
   async checkEmailAvailability(email: string) {
@@ -486,6 +646,26 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     return user;
+  }
+
+  async updateUser(userId: string, updateUserDto: any) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update only the fields that are provided
+    if (updateUserDto.fullName) {
+      user.fullName = updateUserDto.fullName;
+    }
+    if (updateUserDto.phone) {
+      user.phone = updateUserDto.phone;
+    }
+    if (updateUserDto.cnic) {
+      user.cnic = updateUserDto.cnic;
+    }
+
+    return await user.save();
   }
 
   async approveUser(userId: string) {

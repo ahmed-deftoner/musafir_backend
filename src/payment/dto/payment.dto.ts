@@ -62,6 +62,15 @@ export class CreatePaymentDto {
   @Type(() => Number)
   @IsNumber()
   amount: number;
+
+  @ApiProperty({
+    example: 0,
+    description: 'Discount amount to be applied',
+    required: false,
+  })
+  @Type(() => Number)
+  @IsNumber()
+  discount?: number;
 }
 
 export class RequestRefundDto {

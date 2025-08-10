@@ -38,6 +38,8 @@ async function bootstrap() {
   });
   SwaggerModule.setup('api', app, document);
 
+  const frontendUrl = process.env.FRONTEND_URL;
+
   app.enableCors({
     origin: (origin, callback) => {
       const allowedOrigins = [

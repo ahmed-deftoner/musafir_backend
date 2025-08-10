@@ -24,6 +24,7 @@ import { CreateGoogleUserDto } from './dto/create-user.dto';
 import { VerifyUuidDto } from './dto/verify-uuid.dto';
 import { UserService } from './user.service';
 import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiCreatedResponse,
   ApiOkResponse,
@@ -45,7 +46,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -226,6 +227,23 @@ export class UserController {
     };
   }
 
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile information' })
+  @ApiOkResponse({})
+  async updateUser(
+    @GetUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    try {
+      const updatedUser = await this.userService.updateUser(user._id, updateUserDto);
+      return successResponse(updatedUser, 'User updated successfully', 200);
+    } catch (error) {
+      return errorResponse(error);
+    }
+  }
+
   @Get('unverified-users')
   // @Roles('admin')
   // @UseGuards(JwtAuthGuard)
@@ -233,8 +251,8 @@ export class UserController {
   @ApiOperation({ summary: 'Get Unverified Users' })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  UnverifiedUsers() {
-    return this.userService.unverifiedUsers();
+  UnverifiedUsers(@Query('search') search?: string) {
+    return this.userService.unverifiedUsers(search);
   }
 
   @Get('verified-users')
@@ -244,8 +262,8 @@ export class UserController {
   @ApiOperation({ summary: 'Get Verified Users' })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  VerifiedUsers() {
-    return this.userService.verifiedUsers();
+  VerifiedUsers(@Query('search') search?: string) {
+    return this.userService.verifiedUsers(search);
   }
 
   @Get('pending-verification-users')
@@ -255,8 +273,16 @@ export class UserController {
   @ApiOperation({ summary: 'Get Pending Verification Users' })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  PendingVerificationUsers() {
-    return this.userService.pendingVerificationUsers();
+  PendingVerificationUsers(@Query('search') search?: string) {
+    return this.userService.pendingVerificationUsers(search);
+  }
+
+  @Get('search-users')
+  @ApiOperation({ summary: 'Search users across all verification statuses' })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({})
+  async searchUsers(@Query('search') search: string) {
+    return this.userService.searchAllUsers(search);
   }
 
   @Get('user-details/:id')
@@ -281,5 +307,21 @@ export class UserController {
   @ApiOkResponse({})
   rejectUser(@Param('id') id: string) {
     return this.userService.rejectUser(id);
+  }
+
+  @Post('find-user')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Find user by email or phone' })
+  @ApiOkResponse({})
+  async findUserByEmailOrPhone(@Body() body: { emailOrPhone: string }) {
+    return await this.userService.findUserByEmailOrPhone(body.emailOrPhone);
+  }
+
+  @Post('verify-musafir-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify musafir email and generate password' })
+  @ApiOkResponse({})
+  async verifyMusafirEmail(@Body() body: { email: string; updateExisting?: boolean; userId?: string }) {
+    return await this.userService.verifyMusafirEmail(body.email, body.updateExisting, body.userId);
   }
 }

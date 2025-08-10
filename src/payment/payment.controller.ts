@@ -22,7 +22,23 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('payment')
 @Controller('payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(private readonly paymentService: PaymentService) { }
+
+  @Get('get-user-discount/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get User Discount' })
+  @ApiOkResponse({})
+  getUserDiscount(@Param('userId') userId: string) {
+    return this.paymentService.calculateUserDiscount(userId);
+  }
+
+  @Get('get-user-discount-by-registration/:registrationId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get User Discount by Registration ID' })
+  @ApiOkResponse({})
+  getUserDiscountByRegistration(@Param('registrationId') registrationId: string) {
+    return this.paymentService.getUserDiscountByRegistrationId(registrationId);
+  }
 
   @Get('get-bank-accounts')
   @HttpCode(HttpStatus.OK)
