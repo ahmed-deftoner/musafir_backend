@@ -586,6 +586,26 @@ export class UserService {
     return user;
   }
 
+  async updateUser(userId: string, updateUserDto: any) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update only the fields that are provided
+    if (updateUserDto.fullName) {
+      user.fullName = updateUserDto.fullName;
+    }
+    if (updateUserDto.phone) {
+      user.phone = updateUserDto.phone;
+    }
+    if (updateUserDto.cnic) {
+      user.cnic = updateUserDto.cnic;
+    }
+
+    return await user.save();
+  }
+
   async approveUser(userId: string) {
     const user = await this.userModel.findById(userId);
     if (!user) {

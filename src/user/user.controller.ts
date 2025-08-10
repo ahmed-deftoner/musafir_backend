@@ -24,6 +24,7 @@ import { CreateGoogleUserDto } from './dto/create-user.dto';
 import { VerifyUuidDto } from './dto/verify-uuid.dto';
 import { UserService } from './user.service';
 import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiCreatedResponse,
   ApiOkResponse,
@@ -224,6 +225,23 @@ export class UserController {
       message: 'User data fetched successfully',
       data: await this.userService.getUserData(user),
     };
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile information' })
+  @ApiOkResponse({})
+  async updateUser(
+    @GetUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    try {
+      const updatedUser = await this.userService.updateUser(user._id, updateUserDto);
+      return successResponse(updatedUser, 'User updated successfully', 200);
+    } catch (error) {
+      return errorResponse(error);
+    }
   }
 
   @Get('unverified-users')
