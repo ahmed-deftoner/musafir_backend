@@ -116,7 +116,12 @@ export class UserService {
     const user = await this.findByVerification(verificationId);
     await this.checkPassword(password, user);
     await this.setUserAsVerified(user);
-
+    // Send account created notification after password is set and email is verified
+    if (user.email && password) {
+      const firstName = user.fullName?.split(' ')[0] || 'User';
+      const loginUrl = process.env.FRONTEND_URL + '/login';
+      await this.mailService.sendAccountCreatedEmail(user.email, firstName, loginUrl);
+    }
     return {
       fullName: user.fullName,
       email: user.email,

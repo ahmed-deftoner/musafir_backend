@@ -98,6 +98,23 @@ export class MailService {
     }
   }
 
+  async sendAccountCreatedEmail(email: string, firstName: string, loginUrl: string) {
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Your 3M account is ready',
+        template: './account-created',
+        context: {
+          firstName,
+          loginUrl,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
   async sendVerificationApprovedEmail(email: string, fullName: string) {
     try {
       await this.mailerService.sendMail({
