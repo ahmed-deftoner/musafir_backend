@@ -1,3 +1,4 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build && cp -r src/mail/templates dist/src/mail/"
+buildCommand = "npm run build && mkdir -p dist/src/mail && cp -r src/mail/templates dist/src/mail/"
+
