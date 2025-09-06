@@ -5,6 +5,11 @@ import { MailService } from './mail.service';
 import { join } from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+const templatesDir =
+  process.env.NODE_ENV === 'production'
+    ? join(process.cwd(), 'dist', 'mail', 'templates')
+    : join(process.cwd(), 'src', 'mail', 'templates');
+
 @Module({
   imports: [
     MailerModule.forRootAsync({
@@ -22,7 +27,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           from: config.get('SES_FROM_TO'),
         },
         template: {
-          dir: join(process.cwd(), 'src', 'mail', 'templates'),
+          dir: templatesDir,
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
