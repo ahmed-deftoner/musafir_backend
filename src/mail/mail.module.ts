@@ -7,7 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 const templatesDir =
   process.env.NODE_ENV === 'production'
-    ? join(process.cwd(), 'dist', 'mail', 'templates')
+    ? join(process.cwd(), 'dist','src', 'mail', 'templates')
     : join(process.cwd(), 'src', 'mail', 'templates');
 
 @Module({
