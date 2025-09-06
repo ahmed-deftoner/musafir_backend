@@ -10,7 +10,7 @@ export class MailService {
       await this.mailerService.sendMail({
         to: emailto,
         subject: 'Verify Your 3Musafir Account',
-        template: './email-confirmation',
+        template: 'email-confirmation',
         context: {
           password: password,
         },
